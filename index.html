@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Stream</title>
+    <!-- HLS.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+        video {
+            max-width: 100%;
+            max-height: 80vh;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+            margin-bottom: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #ddd;
+        }
+        .selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" width="640" height="360" controls></video>
+    <div class="button-container">
+        <button id="garden-cam">Garden Cam</button>
+        <button id="main-cam">Main Cam</button>
+        <button id="bathroom-cam">Bathroom Cam</button>
+    </div>
+    <script>
+        var video = document.getElementById('video');
+        var mainCamSrc = 'https://prod-ent-live-gm.jiocinema.com/hls/live/2105488/hd_akamai_androidmob_avc_24x7_bbhindi_day01/master_1080p.m3u8';
+        var gardenCamSrc = 'https://prod-ent-live-gm.jiocinema.com/hls/live/2105484/hd_akamai_iosmob_avc_cam01_bbhindi_day01/master_1080p.m3u8';
+        var bathroomCamSrc = 'https://prod-ent-live.jiocinema.com/hls/live/2105437/hd_akamai_iosmob_avc_cam02_bbhindi_day01/master_1080p.m3u8';
+        var hls = new Hls();
+
+        function switchVideo(src) {
+            if (Hls.isSupported()) {
+                if(hls) hls.destroy(); // Destroy the previous instance before creating a new one
+                hls = new Hls();
+                hls.loadSource(src);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play(); // Automatically play video after loading
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = src;
+                video.play(); // Automatically play video for native support
+            }
+        }
+
+        // Get the current camera from URL parameters
+        function getCurrentCam() {
+            var params = new URLSearchParams(window.location.search);
+            return params.get('cam');
+        }
+
+        // Switching cameras with page refresh
+        document.getElementById('garden-cam').addEventListener('click', function() {
+            window.location.search = 'cam=garden';
+        });
+
+        document.getElementById('main-cam').addEventListener('click', function() {
+            window.location.search = 'cam=main';
+        });
+
+        document.getElementById('bathroom-cam').addEventListener('click', function() {
+            window.location.search = 'cam=bathroom';
+        });
+
+        // Set the video source and button highlight based on the selected camera
+        var currentCam = getCurrentCam();
+        if (currentCam === 'garden') {
+            switchVideo(gardenCamSrc);
+            document.getElementById('garden-cam').classList.add('selected');
+        } else if (currentCam === 'bathroom') {
+            switchVideo(bathroomCamSrc);
+            document.getElementById('bathroom-cam').classList.add('selected');
+        } else {
+            switchVideo(mainCamSrc);
+            document.getElementById('main-cam').classList.add('selected');
+        }
+    </script>
+</body>
+</html>
